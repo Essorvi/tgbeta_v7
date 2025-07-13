@@ -1234,6 +1234,69 @@ async def handle_purchase_callback(chat_id: int, user: User, data: str):
                 reply_markup=create_balance_menu()
             )
 
+async def handle_custom_stars_amount_input(chat_id: int, user: User, text: str):
+    """Handle custom amount input for stars payment"""
+    await clear_user_state(user.telegram_id)
+    
+    is_valid, error_msg, amount = validate_custom_amount(text)
+    if not is_valid:
+        await send_telegram_message(
+            chat_id,
+            f"❌ *Ошибка:* {error_msg}",
+            reply_markup=create_back_keyboard()
+        )
+        return
+    
+    stars_needed = int(amount / 2)  # 1 star = 2₽
+    
+    # Create Telegram Stars invoice
+    try:
+        invoice_payload = f"stars_payment_{user.telegram_id}_{amount}"
+        
+        url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendInvoice"
+        invoice_data = {
+            "chat_id": chat_id,
+            "title": f"Пополнение баланса на {amount}₽",
+            "description": f"Пополнение баланса сервиса УЗРИ через Telegram Stars",
+            "payload": invoice_payload,
+            "currency": "XTR",  # Telegram Stars currency
+            "prices": [{"label": f"Пополнение {amount}₽", "amount": stars_needed}]
+        }
+        
+        response = requests.post(url, json=invoice_data)
+        if response.status_code == 200:
+            await send_telegram_message(
+                chat_id,
+                f"⭐ *ОПЛАТА ЗВЕЗДАМИ*\n\n💰 Сумма: {amount}₽\n⭐ К оплате: {stars_needed} звезд\n\n👆 Нажмите кнопку выше для оплаты"
+            )
+        else:
+            await send_telegram_message(
+                chat_id,
+                "❌ Ошибка создания счета. Обратитесь в поддержку @Sigicara",
+                reply_markup=create_back_keyboard()
+            )
+    except Exception as e:
+        await send_telegram_message(
+            chat_id,
+            "❌ Ошибка при создании инвойса. Попробуйте позже или обратитесь в поддержку @Sigicara",
+            reply_markup=create_back_keyboard()
+        )
+
+async def handle_custom_crypto_amount_input(chat_id: int, user: User, text: str, crypto_type: str):
+    """Handle custom amount input for crypto payment"""
+    await clear_user_state(user.telegram_id)
+    
+    is_valid, error_msg, amount = validate_custom_amount(text)
+    if not is_valid:
+        await send_telegram_message(
+            chat_id,
+            f"❌ *Ошибка:* {error_msg}",
+            reply_markup=create_back_keyboard()
+        )
+        return
+    
+    await handle_crypto_payment_amount(chat_id, user, crypto_type, str(amount))
+
 async def handle_telegram_update(update_data: Dict[str, Any]):
     """Process incoming Telegram update"""
     callback_query = update_data.get('callback_query')
