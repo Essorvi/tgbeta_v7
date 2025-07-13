@@ -1127,6 +1127,28 @@ async def handle_stars_custom_amount(chat_id: int, user: User):
         text,
         reply_markup=create_back_keyboard()
     )
+async def handle_crypto_custom_amount(chat_id: int, user: User, crypto_type: str):
+    """Handle custom amount for crypto payment"""
+    crypto_names = {
+        "btc": "Bitcoin (BTC)",
+        "eth": "Ethereum (ETH)", 
+        "usdt": "USDT",
+        "ltc": "Litecoin (LTC)"
+    }
+    
+    await set_user_state(user.telegram_id, "waiting_custom_amount_crypto", {"crypto_type": crypto_type})
+    
+    text = f"💰 *СВОЯ СУММА ПОПОЛНЕНИЯ*\n\n"
+    text += f"🤖 *Валюта:* {crypto_names.get(crypto_type, crypto_type.upper())}\n\n"
+    text += f"📝 Введите сумму в рублях (от 100₽ до 50,000₽)\n"
+    text += f"💡 Сумма должна быть кратна 50₽\n\n"
+    text += f"❌ Для отмены нажмите кнопку"
+    
+    await send_telegram_message(
+        chat_id,
+        text,
+        reply_markup=create_back_keyboard()
+    )
 
 async def handle_stars_payment(chat_id: int, user: User, amount: str):
     """Handle Telegram Stars payment"""
