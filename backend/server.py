@@ -507,17 +507,10 @@ async def handle_callback_query(callback_query: Dict[str, Any]):
                 parts = data.split("_")
                 crypto_type = parts[1]
                 amount = parts[2]
-                await handle_crypto_payment_amount(chat_id, user, crypto_type, amount)
-            else:  # crypto_btc format
-                crypto_type = data.split("_")[1]
-                await handle_crypto_payment(chat_id, user, crypto_type)
-    elif data.startswith("crypto_"):
-        if "_btc" in data or "_eth" in data or "_usdt" in data or "_ltc" in data:
-            if data.count("_") >= 3:  # crypto_btc_100 format
-                parts = data.split("_")
-                crypto_type = parts[1]
-                amount = parts[2]
-                await handle_crypto_payment_amount(chat_id, user, crypto_type, amount)
+                if amount == "custom":
+                    await handle_crypto_custom_amount(chat_id, user, crypto_type)
+                else:
+                    await handle_crypto_payment_amount(chat_id, user, crypto_type, amount)
             else:  # crypto_btc format
                 crypto_type = data.split("_")[1]
                 await handle_crypto_payment(chat_id, user, crypto_type)
