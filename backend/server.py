@@ -523,7 +523,10 @@ async def handle_callback_query(callback_query: Dict[str, Any]):
                 await handle_crypto_payment(chat_id, user, crypto_type)
     elif data.startswith("stars_"):
         amount = data.split("_")[1]
-        await handle_stars_payment(chat_id, user, amount)
+        if amount == "custom":
+            await handle_stars_custom_amount(chat_id, user)
+        else:
+            await handle_stars_payment(chat_id, user, amount)
 
 async def handle_subscription_check(chat_id: int, user_id: int):
     """Handle subscription check"""
